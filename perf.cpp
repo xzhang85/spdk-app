@@ -5,11 +5,11 @@
 #include "spdk/stdinc.h"
 #include <time.h>
 
-#include "dev.h"
-#include "perf.h"
+#include "dev.hpp"
+#include "perf.hpp"
 
 struct poor_perf_data {
-  struct dev_struct *dev;
+  Dev *dev;
   int count;
   size_t total_bytes;
   struct timespec start;
@@ -20,9 +20,9 @@ static void dev_write_buf(void *arg);
 
 static void write_comp_cb(struct spdk_bdev_io *bdev_io, bool success,
                           void *cb_arg) {
-  struct poor_perf_data *data = cb_arg;
+  auto data = static_cast<struct poor_perf_data *>(cb_arg);
 
-  data->total_bytes += data->dev->blk_size;
+  data->total_bytes += data->dev->m_blk_size;
 
   spdk_bdev_free_io(bdev_io);
 
@@ -45,19 +45,19 @@ static void write_comp_cb(struct spdk_bdev_io *bdev_io, bool success,
 
 static void dev_write_buf(void *arg) {
   int rc;
-  struct poor_perf_data *data = arg;
-  struct dev_struct *dev = data->dev;
+  auto data = static_cast<struct poor_perf_data *>(arg);
+  Dev *dev = data->dev;
 
-  rc = spdk_bdev_write(dev->bdev_desc, dev->bdev_io_channel, dev->buff, 0,
-                       dev->blk_size, write_comp_cb, data);
+  rc = spdk_bdev_write(dev->m_bdev_desc, dev->m_bdev_io_channel, dev->m_buff, 0,
+                       dev->m_blk_size, write_comp_cb, data);
 
   if (rc == -ENOMEM) {
     /* In case we cannot perform I/O now, queue I/O */
-    dev->bdev_io_wait.bdev = dev->bdev;
-    dev->bdev_io_wait.cb_fn = dev_write_buf;
-    dev->bdev_io_wait.cb_arg = data;
-    if (spdk_bdev_queue_io_wait(dev->bdev, dev->bdev_io_channel,
-                                &dev->bdev_io_wait))
+    dev->m_bdev_io_wait.bdev = dev->m_bdev;
+    dev->m_bdev_io_wait.cb_fn = dev_write_buf;
+    dev->m_bdev_io_wait.cb_arg = data;
+    if (spdk_bdev_queue_io_wait(dev->m_bdev, dev->m_bdev_io_channel,
+                                &dev->m_bdev_io_wait))
       SPDK_ERRLOG("spdk_bdev_write failed with -ENOMEM and "
                   "spdk_bdev_queue_io_wait also failed\n");
   } else if (rc) {
@@ -66,8 +66,9 @@ static void dev_write_buf(void *arg) {
 }
 
 int poor_perf(const char *bdev_name, int count) {
-  struct dev_struct *dev = get_device(bdev_name);
-  struct poor_perf_data *data = malloc(sizeof(struct poor_perf_data));
+  Dev *dev = find_device(bdev_name);
+  auto data = static_cast<struct poor_perf_data *>(
+      malloc(sizeof(struct poor_perf_data)));
 
   memset(data, 0, sizeof(struct poor_perf_data));
   data->dev = dev;

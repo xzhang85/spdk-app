@@ -9,8 +9,8 @@
 #include "spdk/thread.h"
 #include <signal.h>
 
-#include "dev.h"
-#include "perf.h"
+#include "dev.hpp"
+#include "perf.hpp"
 
 void sig_handler(int sig) { spdk_app_stop(0); }
 
@@ -35,7 +35,7 @@ static void dev_init_rpc(struct spdk_jsonrpc_request *request,
                                      "invalid parameters");
   }
 
-  rc = dev_init(req.bdev_name);
+  rc = create_device(req.bdev_name);
 
   w = spdk_jsonrpc_begin_result(request);
   spdk_json_write_object_begin(w);
@@ -46,7 +46,6 @@ static void dev_init_rpc(struct spdk_jsonrpc_request *request,
 
 static void dev_exit_rpc(struct spdk_jsonrpc_request *request,
                          const struct spdk_json_val *params) {
-  int rc;
   struct spdk_json_write_ctx *w;
   struct start_rpc_msg req = {};
 
@@ -56,11 +55,11 @@ static void dev_exit_rpc(struct spdk_jsonrpc_request *request,
                                      "invalid parameters");
   }
 
-  rc = dev_exit(req.bdev_name);
+  remove_device(req.bdev_name);
 
   w = spdk_jsonrpc_begin_result(request);
   spdk_json_write_object_begin(w);
-  spdk_json_write_named_int32(w, "ret_code", rc);
+  spdk_json_write_named_int32(w, "ret_code", 0);
   spdk_json_write_object_end(w);
   spdk_jsonrpc_end_result(request, w);
 }
