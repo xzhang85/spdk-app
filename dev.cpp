@@ -33,9 +33,9 @@ int create_device(const std::string &bdev_name) {
   return rc;
 }
 
-void remove_device(const std::string &bdev_name) {
-    g_devlist.erase(bdev_name);
-}
+void remove_device(const std::string &bdev_name) { g_devlist.erase(bdev_name); }
+
+void remove_all_devices() { g_devlist.clear(); }
 
 void Dev::dev_event_cb(enum spdk_bdev_event_type type, struct spdk_bdev *bdev,
                        void *event_ctx) {
@@ -73,9 +73,11 @@ int Dev::open(const std::string &bdev_name) {
 
   m_num_blk = spdk_bdev_get_num_blocks(m_bdev);
   m_blk_size = spdk_bdev_get_block_size(m_bdev);
+  m_data_blk_size = spdk_bdev_get_data_block_size(m_bdev);
   buf_align = spdk_bdev_get_buf_align(m_bdev);
-  SPDK_NOTICELOG("num_blk = %zu, blk_size = %zu, buf_align = %u\n", m_num_blk,
-                 m_blk_size, buf_align);
+  SPDK_NOTICELOG(
+      "num_blk = %zu, blk_size = %zu, data_blk_size = %zu, buf_align = %u\n",
+      m_num_blk, m_blk_size, m_data_blk_size, buf_align);
   m_buff = spdk_dma_zmalloc(m_blk_size, buf_align, NULL);
   if (!m_buff) {
     SPDK_ERRLOG("Failed to allocate buffer\n");
@@ -90,7 +92,10 @@ int Dev::open(const std::string &bdev_name) {
 }
 
 void Dev::close() {
-  spdk_dma_free(m_buff);
-  spdk_put_io_channel(m_bdev_io_channel);
-  spdk_bdev_close(m_bdev_desc);
+  if (m_inited) {
+    spdk_dma_free(m_buff);
+    spdk_put_io_channel(m_bdev_io_channel);
+    spdk_bdev_close(m_bdev_desc);
+    m_inited = false;
+  }
 }

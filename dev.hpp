@@ -9,6 +9,7 @@ class Dev;
 Dev *find_device(const std::string &bdev_name);
 int create_device(const std::string &bdev_name);
 void remove_device(const std::string &bdev_name);
+void remove_all_devices();
 
 class Dev {
 public:
@@ -23,6 +24,7 @@ public:
   struct spdk_bdev_io_wait_entry m_bdev_io_wait {};
   size_t m_num_blk{};
   size_t m_blk_size{};
+  size_t m_data_blk_size{};
 
 private:
   bool m_inited{};
@@ -35,6 +37,7 @@ private:
   friend Dev *find_device(const std::string &bdev_name);
   friend int create_device(const std::string &bdev_name);
   friend void remove_device(const std::string &bdev_name);
+  friend void remove_all_devices();
 };
 
 #endif // SPDK_APP_DEV_STRUCT_H

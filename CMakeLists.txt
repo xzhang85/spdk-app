@@ -5,7 +5,7 @@ set(SPDK_ROOT "" CACHE STRING "spdk install dir")
 set(SPDK_DPDK_ROOT "" CACHE STRING "spdk's dpdk install dir")
 
 add_executable(spdk-app)
-target_sources(spdk-app PRIVATE main.cpp dev.cpp dev.hpp perf.cpp perf.hpp)
+target_sources(spdk-app PRIVATE main.cpp dev.cpp dev.hpp perf.cpp perf.hpp utils.cpp utils.hpp)
 target_compile_options(spdk-app PRIVATE -Wall -Werror -fPIC -pthread)
 target_include_directories(spdk-app PRIVATE ${SPDK_ROOT}/include ${SPDK_DPDK_ROOT}/include)
 target_link_directories(spdk-app PRIVATE ${SPDK_ROOT}/lib ${SPDK_ROOT}/../isa-l/.libs ${SPDK_DPDK_ROOT}/lib)

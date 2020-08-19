@@ -80,13 +80,25 @@ if __name__ == "__main__":
     p.add_argument('-d', '--bdev_name', help='bdev name to exit')
     p.set_defaults(func=device_exit)
 
-    def poor_perf(args):
-        print_dict(rpc.own.poor_perf(args.client, bdev_name=args.bdev_name, count=args.count))
+    def poor_perf1(args):
+        print_dict(rpc.own.poor_perf1(args.client, bdev_name=args.bdev_name, count=args.count, _type=args.type, size=args.size))
 
-    p = subparsers.add_parser('poor_perf', help='')
+    p = subparsers.add_parser('poor_perf1', help='')
     p.add_argument('-d', '--bdev_name', help='bdev to poor perf')
     p.add_argument('-c', '--count', help='iteration count', type=int)
-    p.set_defaults(func=poor_perf)
+    p.add_argument('-s', '--size', help='io size', type=int)
+    p.add_argument('-t', '--type', help='operation type', type=str)
+    p.set_defaults(func=poor_perf1)
+
+    def poor_perf2(args):
+        print_dict(rpc.own.poor_perf2(args.client, bdev_name=args.bdev_name, count=args.count, _type=args.type, size=args.size))
+
+    p = subparsers.add_parser('poor_perf2', help='')
+    p.add_argument('-d', '--bdev_name', help='bdev to poor perf')
+    p.add_argument('-c', '--count', help='iteration count', type=int)
+    p.add_argument('-s', '--size', help='io size', type=int)
+    p.add_argument('-t', '--type', help='operation type', type=str)
+    p.set_defaults(func=poor_perf2)
 
     def rpc_get_methods(args):
         print_dict(rpc.rpc_get_methods(args.client,
